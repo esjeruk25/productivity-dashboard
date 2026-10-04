@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { LayoutDashboard, CheckSquare, Timer, StickyNote } from 'lucide-react'
+import TaskPage from './components/TaskPage'
 
 const menus = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -10,6 +11,7 @@ const menus = [
 
 export default function App() {
   const [active, setActive] = useState('dashboard')
+  const [tasks, setTasks] = useState([])
   const current = menus.find((m) => m.id === active)
 
   return (
@@ -35,10 +37,16 @@ export default function App() {
       </aside>
 
       <main className="flex-1 p-8">
-        <h2 className="text-2xl font-semibold">{current.label}</h2>
-        <p className="mt-2 text-slate-500">
-          Halaman {current.label} akan dibangun di hari berikutnya.
-        </p>
+        {active === 'tasks' ? (
+          <TaskPage tasks={tasks} setTasks={setTasks} />
+        ) : (
+          <>
+            <h2 className="text-2xl font-semibold">{current.label}</h2>
+            <p className="mt-2 text-slate-500">
+              Halaman {current.label} akan dibangun di hari berikutnya.
+            </p>
+          </>
+        )}
       </main>
     </div>
   )
