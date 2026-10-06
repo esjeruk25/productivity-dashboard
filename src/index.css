@@ -1,1 +1,44 @@
 @import "tailwindcss";
+
+/* ===== Dark mode =====
+   Tailwind v4 menyimpan warna sebagai variabel CSS (--color-slate-*).
+   Saat <html> punya class "dark", skala slate kita tukar jadi gelap,
+   sehingga semua komponen otomatis ikut berubah. */
+html.dark {
+  color-scheme: dark;
+  background-color: oklch(12.9% 0.042 264.695);
+
+  --color-slate-50: oklch(12.9% 0.042 264.695);
+  --color-slate-100: oklch(27.9% 0.041 260.031);
+  --color-slate-200: oklch(33% 0.042 262);
+  --color-slate-300: oklch(44.6% 0.043 257.281);
+  --color-slate-400: oklch(55.4% 0.046 257.417);
+  --color-slate-500: oklch(70.4% 0.04 256.788);
+  --color-slate-600: oklch(86.9% 0.022 252.894);
+  --color-slate-700: oklch(92.9% 0.013 255.508);
+  --color-slate-800: oklch(96.8% 0.007 247.896);
+
+  /* latar pastel dijadikan versi gelap */
+  --color-indigo-50: oklch(28% 0.09 277);
+  --color-indigo-100: oklch(35% 0.1 277);
+  --color-sky-50: oklch(28% 0.05 237);
+  --color-emerald-50: oklch(28% 0.05 165);
+  --color-violet-50: oklch(28% 0.09 293);
+}
+
+html.dark .bg-white {
+  background-color: oklch(20.8% 0.042 265.755);
+}
+
+html.dark .text-indigo-600 { color: oklch(67.3% 0.182 276.935); }
+html.dark .text-sky-600 { color: oklch(74.6% 0.16 232.661); }
+html.dark .text-emerald-600 { color: oklch(76.5% 0.177 163.223); }
+html.dark .text-violet-600 { color: oklch(70.2% 0.183 293.541); }
+
+/* transisi halus saat tombol tema ditekan (dipasang sebentar oleh App.jsx) */
+html.theme-switching * {
+  transition:
+    background-color 0.3s,
+    color 0.3s,
+    border-color 0.3s !important;
+}
