@@ -3,9 +3,12 @@ import { motion, AnimatePresence } from 'motion/react'
 import { LayoutDashboard, CheckSquare, Timer, StickyNote } from 'lucide-react'
 import TaskPage from './components/TaskPage'
 import Dashboard from './components/Dashboard'
+import PomodoroPage from './components/PomodoroPage'
+import NotesPage from './components/NotesPage'
 import LoadingScreen from './components/LoadingScreen'
 import ThemeToggle from './components/ThemeToggle'
 import useLocalStorage from './hooks/useLocalStorage'
+import usePomodoro, { formatTime } from './hooks/usePomodoro'
 
 const menus = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -17,6 +20,8 @@ const menus = [
 export default function App() {
   const [active, setActive] = useState('dashboard')
   const [tasks, setTasks] = useLocalStorage('focusboard-tasks', [])
+  const [notes, setNotes] = useLocalStorage('focusboard-notes', [])
+  const pomo = usePomodoro(tasks)
   const [loading, setLoading] = useState(() => {
     try {
       return sessionStorage.getItem('focusboard-loaded') !== '1'
@@ -28,7 +33,6 @@ export default function App() {
     'focusboard-theme',
     window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light',
   )
-  const current = menus.find((m) => m.id === active)
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', theme === 'dark')
@@ -77,6 +81,16 @@ export default function App() {
                 )}
                 <Icon size={18} className="relative" />
                 <span className="relative">{label}</span>
+                {id === 'pomodoro' && pomo.running && (
+                  <motion.span
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    className="relative ml-auto flex items-center gap-1.5 text-xs tabular-nums"
+                  >
+                    <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" />
+                    {formatTime(pomo.secondsLeft)}
+                  </motion.span>
+                )}
               </button>
             ))}
           </nav>
@@ -93,17 +107,17 @@ export default function App() {
               transition={{ duration: 0.2 }}
             >
               {active === 'dashboard' && (
-                <Dashboard tasks={tasks} setTasks={setTasks} goTo={setActive} />
+                <Dashboard
+                  tasks={tasks}
+                  setTasks={setTasks}
+                  goTo={setActive}
+                  sessionsToday={pomo.todaySessions.length}
+                  notesCount={notes.length}
+                />
               )}
               {active === 'tasks' && <TaskPage tasks={tasks} setTasks={setTasks} />}
-              {(active === 'pomodoro' || active === 'notes') && (
-                <>
-                  <h2 className="text-2xl font-semibold">{current.label}</h2>
-                  <p className="mt-2 text-slate-500">
-                    Halaman {current.label} akan dibangun di hari berikutnya.
-                  </p>
-                </>
-              )}
+              {active === 'pomodoro' && <PomodoroPage pomo={pomo} tasks={tasks} />}
+              {active === 'notes' && <NotesPage notes={notes} setNotes={setNotes} />}
             </motion.div>
           </AnimatePresence>
         </main>

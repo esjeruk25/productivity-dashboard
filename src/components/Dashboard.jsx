@@ -20,7 +20,7 @@ function greeting(hour) {
   return 'Selamat malam'
 }
 
-export default function Dashboard({ tasks, setTasks, goTo }) {
+export default function Dashboard({ tasks, setTasks, goTo, sessionsToday = 0, notesCount = 0 }) {
   const [now, setNow] = useState(new Date())
 
   useEffect(() => {
@@ -200,8 +200,8 @@ export default function Dashboard({ tasks, setTasks, goTo }) {
 
       <div className="mt-4 grid gap-4 sm:grid-cols-2">
         {[
-          { id: 'pomodoro', label: 'Pomodoro Timer', hint: 'Segera hadir', icon: Timer },
-          { id: 'notes', label: 'Catatan', hint: 'Segera hadir', icon: StickyNote },
+          { id: 'pomodoro', label: 'Pomodoro Timer', hint: `${sessionsToday} sesi fokus hari ini`, icon: Timer },
+          { id: 'notes', label: 'Catatan', hint: `${notesCount} catatan tersimpan`, icon: StickyNote },
         ].map(({ id, label, hint, icon: Icon }) => (
           <motion.button
             key={id}
