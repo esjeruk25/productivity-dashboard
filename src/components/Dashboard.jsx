@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { motion } from 'motion/react'
 import { CheckCircle2, Circle, ListTodo, Layers, Flag, Timer, StickyNote } from 'lucide-react'
 import AnimatedNumber from './AnimatedNumber'
+import { deadlineInfo } from '../utils/deadline'
 
 const CATEGORIES = [
   { id: 'kuliah', label: 'Kuliah', bar: 'bg-sky-500' },
@@ -190,6 +191,11 @@ export default function Dashboard({ tasks, setTasks, goTo, sessionsToday = 0, no
                 >
                   <Circle size={18} className="text-slate-300" />
                   <span className="flex-1 text-sm">{t.text}</span>
+                  {t.deadline && (
+                    <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${deadlineInfo(t.deadline).style}`}>
+                      {deadlineInfo(t.deadline).label}
+                    </span>
+                  )}
                   <Flag size={14} className={FLAG[t.priority] ?? FLAG.sedang} />
                 </button>
               </li>

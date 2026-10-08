@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 /* ===== Dark mode =====
-Tailwind v4 menyimpan warna sebagai variabel CSS (--color-slate-*).
-Saat <html> punya class "dark", skala slate kita tukar jadi gelap,
+   Tailwind v4 menyimpan warna sebagai variabel CSS (--color-slate-*).
+   Saat <html> punya class "dark", skala slate kita tukar jadi gelap,
    sehingga semua komponen otomatis ikut berubah. */
 html.dark {
   color-scheme: dark;
@@ -31,6 +31,7 @@ html.dark {
   --color-sky-200: oklch(40% 0.06 237);
   --color-emerald-200: oklch(40% 0.07 165);
   --color-violet-200: oklch(42% 0.1 293);
+  --color-red-50: oklch(28% 0.09 25);
 }
 
 html.dark .bg-white {
@@ -41,6 +42,8 @@ html.dark .text-indigo-600 { color: oklch(67.3% 0.182 276.935); }
 html.dark .text-sky-600 { color: oklch(74.6% 0.16 232.661); }
 html.dark .text-emerald-600 { color: oklch(76.5% 0.177 163.223); }
 html.dark .text-violet-600 { color: oklch(70.2% 0.183 293.541); }
+html.dark .text-red-600 { color: oklch(70.4% 0.191 22.216); }
+html.dark .text-amber-600 { color: oklch(82.8% 0.189 84.429); }
 
 /* transisi halus saat tombol tema ditekan (dipasang sebentar oleh App.jsx) */
 html.theme-switching * {
