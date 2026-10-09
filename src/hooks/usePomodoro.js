@@ -115,7 +115,7 @@ export default function usePomodoro(tasks) {
 
   return {
     mode, secondsLeft, running, durations, muted, setMuted,
-    focusTaskId, setFocusTaskId, todaySessions,
+    focusTaskId, setFocusTaskId, todaySessions, sessions,
     toggle, reset, skip, switchMode, changeDuration,
   }
 }

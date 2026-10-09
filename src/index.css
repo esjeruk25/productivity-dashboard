@@ -21,6 +21,7 @@ html.dark {
   /* latar pastel dijadikan versi gelap */
   --color-indigo-50: oklch(28% 0.09 277);
   --color-indigo-100: oklch(35% 0.1 277);
+  --color-indigo-200: oklch(40% 0.1 277);
   --color-sky-50: oklch(28% 0.05 237);
   --color-emerald-50: oklch(28% 0.05 165);
   --color-violet-50: oklch(28% 0.09 293);

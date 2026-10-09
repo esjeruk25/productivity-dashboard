@@ -1,26 +1,34 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
-import { LayoutDashboard, CheckSquare, Timer, StickyNote, Sun, Moon } from 'lucide-react'
+import confetti from 'canvas-confetti'
+import {
+  LayoutDashboard, CheckSquare, Timer, StickyNote, BarChart3, Sun, Moon, Trophy,
+} from 'lucide-react'
 import TaskPage from './components/TaskPage'
 import Dashboard from './components/Dashboard'
 import PomodoroPage from './components/PomodoroPage'
 import NotesPage from './components/NotesPage'
+import StatsPage from './components/StatsPage'
 import LoadingScreen from './components/LoadingScreen'
 import ThemeToggle from './components/ThemeToggle'
 import useLocalStorage from './hooks/useLocalStorage'
 import usePomodoro, { formatTime } from './hooks/usePomodoro'
+import { ACHIEVEMENTS, buildContext, evaluate } from './utils/stats'
 
 const menus = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { id: 'tasks', label: 'Tugas', icon: CheckSquare },
   { id: 'pomodoro', label: 'Pomodoro', icon: Timer },
   { id: 'notes', label: 'Catatan', icon: StickyNote },
+  { id: 'stats', label: 'Statistik', icon: BarChart3 },
 ]
 
 export default function App() {
   const [active, setActive] = useState('dashboard')
   const [tasks, setTasks] = useLocalStorage('focusboard-tasks', [])
   const [notes, setNotes] = useLocalStorage('focusboard-notes', [])
+  const [seen, setSeen] = useLocalStorage('focusboard-achievements', [])
+  const [toast, setToast] = useState(null)
   const pomo = usePomodoro(tasks)
   const [loading, setLoading] = useState(() => {
     try {
@@ -34,9 +42,37 @@ export default function App() {
     window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light',
   )
 
+  // Statistik dan pencapaian dihitung dari data yang sudah ada
+  const ctx = buildContext(tasks, notes, pomo.sessions)
+  const evaluated = evaluate(ctx)
+  const unlockedKey = evaluated.filter((a) => a.unlocked).map((a) => a.id).join(',')
+  const achievements = evaluated.map((a) =>
+    seen.includes(a.id) ? { ...a, current: a.target, unlocked: true } : a,
+  )
+
   useEffect(() => {
     document.documentElement.classList.toggle('dark', theme === 'dark')
   }, [theme])
+
+  // Pencapaian baru: simpan, tampilkan notifikasi, lempar konfeti
+  useEffect(() => {
+    if (loading || !unlockedKey) return
+    const fresh = unlockedKey.split(',').filter((id) => !seen.includes(id))
+    if (fresh.length === 0) return
+    setSeen([...seen, ...fresh])
+    const first = ACHIEVEMENTS.find((a) => a.id === fresh[0])
+    setToast({
+      key: Date.now(),
+      text: fresh.length > 1 ? `${first.title} dan ${fresh.length - 1} lainnya` : first.title,
+    })
+    confetti({ particleCount: 90, spread: 75, origin: { y: 0.2 } })
+  }, [loading, unlockedKey, seen, setSeen])
+
+  useEffect(() => {
+    if (!toast) return
+    const id = setTimeout(() => setToast(null), 4500)
+    return () => clearTimeout(id)
+  }, [toast])
 
   const toggleTheme = () => {
     const root = document.documentElement
@@ -58,6 +94,30 @@ export default function App() {
     <>
       <AnimatePresence>
         {loading && <LoadingScreen key="loader" onFinish={finishLoading} />}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {toast && (
+          <motion.button
+            key={toast.key}
+            onClick={() => {
+              setActive('stats')
+              setToast(null)
+            }}
+            initial={{ opacity: 0, y: -30, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -30, scale: 0.9 }}
+            className="fixed left-1/2 top-4 z-[60] flex -translate-x-1/2 items-center gap-3 rounded-2xl border border-white/10 bg-[#0f172a] px-4 py-3 text-left text-white shadow-2xl"
+          >
+            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-amber-400 text-[#0f172a]">
+              <Trophy size={18} />
+            </span>
+            <span>
+              <span className="block text-xs text-[#94a3b8]">Pencapaian terbuka!</span>
+              <span className="block text-sm font-semibold">{toast.text}</span>
+            </span>
+          </motion.button>
+        )}
       </AnimatePresence>
 
       <div className="flex min-h-screen flex-col bg-slate-50 text-slate-800 md:flex-row">
@@ -136,11 +196,13 @@ export default function App() {
                     goTo={setActive}
                     sessionsToday={pomo.todaySessions.length}
                     notesCount={notes.length}
+                    streak={ctx.streak}
                   />
                 )}
                 {active === 'tasks' && <TaskPage tasks={tasks} setTasks={setTasks} />}
                 {active === 'pomodoro' && <PomodoroPage pomo={pomo} tasks={tasks} />}
                 {active === 'notes' && <NotesPage notes={notes} setNotes={setNotes} />}
+                {active === 'stats' && <StatsPage ctx={ctx} achievements={achievements} />}
               </motion.div>
             </AnimatePresence>
           </main>
@@ -162,7 +224,7 @@ export default function App() {
               {active === id && (
                 <motion.span
                   layoutId="nav-top"
-                  className="absolute inset-x-5 top-0 h-0.5 rounded-full bg-indigo-600"
+                  className="absolute inset-x-3 top-0 h-0.5 rounded-full bg-indigo-600"
                   transition={{ type: 'spring', stiffness: 400, damping: 32 }}
                 />
               )}

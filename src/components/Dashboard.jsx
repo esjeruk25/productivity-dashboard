@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { motion } from 'motion/react'
-import { CheckCircle2, Circle, ListTodo, Layers, Flag, Timer, StickyNote } from 'lucide-react'
+import { CheckCircle2, Circle, ListTodo, Layers, Flag, Timer, StickyNote, Flame } from 'lucide-react'
 import AnimatedNumber from './AnimatedNumber'
 import { deadlineInfo } from '../utils/deadline'
 
@@ -21,7 +21,7 @@ function greeting(hour) {
   return 'Selamat malam'
 }
 
-export default function Dashboard({ tasks, setTasks, goTo, sessionsToday = 0, notesCount = 0 }) {
+export default function Dashboard({ tasks, setTasks, goTo, sessionsToday = 0, notesCount = 0, streak = 0 }) {
   const [now, setNow] = useState(new Date())
 
   useEffect(() => {
@@ -40,7 +40,11 @@ export default function Dashboard({ tasks, setTasks, goTo, sessionsToday = 0, no
     .slice(0, 4)
 
   const toggle = (id) =>
-    setTasks(tasks.map((t) => (t.id === id ? { ...t, done: !t.done } : t)))
+    setTasks(
+      tasks.map((t) =>
+        t.id === id ? { ...t, done: !t.done, doneAt: t.done ? null : new Date().toISOString() } : t,
+      ),
+    )
 
   const stats = [
     { label: 'Tugas tersisa', value: remaining, icon: ListTodo, color: 'bg-indigo-50 text-indigo-600' },
@@ -68,6 +72,22 @@ export default function Dashboard({ tasks, setTasks, goTo, sessionsToday = 0, no
           {now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
         </p>
       </div>
+
+      {streak > 0 && (
+        <motion.button
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => goTo('stats')}
+          className="mt-4 inline-flex items-center gap-2 rounded-full bg-amber-50 px-3 py-1 text-sm font-medium text-amber-600"
+        >
+          <motion.span animate={{ rotate: [0, -15, 15, 0] }} transition={{ repeat: Infinity, duration: 1.6 }}>
+            <Flame size={16} />
+          </motion.span>
+          {streak} hari beruntun
+        </motion.button>
+      )}
 
       <div className="mt-6 grid gap-4 sm:grid-cols-3">
         {stats.map(({ label, value, icon: Icon, color }, i) => (

@@ -5,6 +5,7 @@ import {
   Plus, Trash2, Check, ListChecks, Flag, Search, GripVertical, CalendarDays, Undo2,
 } from 'lucide-react'
 import { deadlineInfo } from '../utils/deadline'
+import Chips from './Chips'
 
 const CATEGORIES = {
   kuliah: { label: 'Kuliah', style: 'bg-sky-50 text-sky-600' },
@@ -26,33 +27,6 @@ const statusOptions = [
   { value: 'done', label: 'Selesai' },
 ]
 const catFilterOptions = [{ value: 'all', label: 'Semua' }, ...catOptions]
-
-// Deretan chip dengan indikator yang meluncur ke pilihan aktif
-function Chips({ options, value, onChange, group }) {
-  return (
-    <div className="flex flex-wrap gap-1">
-      {options.map((o) => (
-        <button
-          key={o.value}
-          type="button"
-          onClick={() => onChange(o.value)}
-          className={`relative rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-            value === o.value ? 'text-white' : 'text-slate-600 hover:bg-slate-100'
-          }`}
-        >
-          {value === o.value && (
-            <motion.span
-              layoutId={`pill-${group}`}
-              className="absolute inset-0 rounded-full bg-indigo-600"
-              transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-            />
-          )}
-          <span className="relative">{o.label}</span>
-        </button>
-      ))}
-    </div>
-  )
-}
 
 // Satu baris tugas, bisa digeser lewat ikon pegangan di kiri
 function TaskItem({
@@ -201,7 +175,9 @@ export default function TaskPage({ tasks, setTasks }) {
   }
 
   const toggleTask = (id) => {
-    const updated = tasks.map((t) => (t.id === id ? { ...t, done: !t.done } : t))
+    const updated = tasks.map((t) =>
+      t.id === id ? { ...t, done: !t.done, doneAt: t.done ? null : new Date().toISOString() } : t,
+    )
     setTasks(updated)
     if (updated.length > 0 && updated.every((t) => t.done)) {
       confetti({ particleCount: 140, spread: 85, origin: { y: 0.7 } })
