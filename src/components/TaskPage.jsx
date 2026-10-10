@@ -256,6 +256,7 @@ export default function TaskPage({ tasks, setTasks }) {
               setText(e.target.value)
               if (error) setError('')
             }}
+            id="task-input"
             placeholder="Tulis tugas baru, lalu tekan Enter..."
             className="min-w-0 flex-1 rounded-lg border border-slate-200 px-4 py-2.5 text-sm outline-none transition focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
           />

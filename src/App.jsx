@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import confetti from 'canvas-confetti'
 import {
-  LayoutDashboard, CheckSquare, Timer, StickyNote, BarChart3, Sun, Moon, Trophy,
+  LayoutDashboard, CheckSquare, Timer, StickyNote, BarChart3, Sun, Moon, Trophy, Search,
 } from 'lucide-react'
 import TaskPage from './components/TaskPage'
 import Dashboard from './components/Dashboard'
@@ -11,6 +11,9 @@ import NotesPage from './components/NotesPage'
 import StatsPage from './components/StatsPage'
 import LoadingScreen from './components/LoadingScreen'
 import ThemeToggle from './components/ThemeToggle'
+import CommandPalette from './components/CommandPalette'
+import ShortcutsHelp from './components/ShortcutsHelp'
+import { MOD_KEY } from './utils/platform'
 import useLocalStorage from './hooks/useLocalStorage'
 import usePomodoro, { formatTime } from './hooks/usePomodoro'
 import { ACHIEVEMENTS, buildContext, evaluate } from './utils/stats'
@@ -29,6 +32,8 @@ export default function App() {
   const [notes, setNotes] = useLocalStorage('focusboard-notes', [])
   const [seen, setSeen] = useLocalStorage('focusboard-achievements', [])
   const [toast, setToast] = useState(null)
+  const [paletteOpen, setPaletteOpen] = useState(false)
+  const [helpOpen, setHelpOpen] = useState(false)
   const pomo = usePomodoro(tasks)
   const [loading, setLoading] = useState(() => {
     try {
@@ -74,12 +79,47 @@ export default function App() {
     return () => clearTimeout(id)
   }, [toast])
 
-  const toggleTheme = () => {
+  const toggleTheme = useCallback(() => {
     const root = document.documentElement
     root.classList.add('theme-switching')
     setTheme(theme === 'dark' ? 'light' : 'dark')
     setTimeout(() => root.classList.remove('theme-switching'), 350)
-  }
+  }, [theme, setTheme])
+
+  // Pindah ke halaman Tugas lalu langsung fokus ke kolom input
+  const focusNewTask = useCallback(() => {
+    setActive('tasks')
+    setTimeout(() => document.getElementById('task-input')?.focus(), 400)
+  }, [])
+
+  // Pintasan keyboard global
+  useEffect(() => {
+    const onKey = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault()
+        if (!loading) setPaletteOpen((o) => !o)
+        return
+      }
+      if (loading || paletteOpen || helpOpen) return
+      if (e.ctrlKey || e.metaKey || e.altKey) return
+      const el = e.target
+      if (el.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(el.tagName)) return
+
+      const num = Number(e.key)
+      if (num >= 1 && num <= menus.length) {
+        setActive(menus[num - 1].id)
+      } else if (e.key.toLowerCase() === 'n') {
+        e.preventDefault()
+        focusNewTask()
+      } else if (e.key.toLowerCase() === 'd') {
+        toggleTheme()
+      } else if (e.key === '?') {
+        setHelpOpen(true)
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [loading, paletteOpen, helpOpen, focusNewTask, toggleTheme])
 
   const finishLoading = () => {
     try {
@@ -120,10 +160,34 @@ export default function App() {
         )}
       </AnimatePresence>
 
+      <AnimatePresence>
+        {paletteOpen && !loading && (
+          <CommandPalette
+            key="palette"
+            onClose={() => setPaletteOpen(false)}
+            ctx={{
+              tasks, setTasks, notes, setNotes, pomo, menus, theme, toggleTheme,
+              goTo: setActive,
+              newTask: focusNewTask,
+              openHelp: () => setHelpOpen(true),
+            }}
+          />
+        )}
+        {helpOpen && <ShortcutsHelp key="help" onClose={() => setHelpOpen(false)} />}
+      </AnimatePresence>
+
       <div className="flex min-h-screen flex-col bg-slate-50 text-slate-800 md:flex-row">
         {/* Sidebar (layar lebar) */}
         <aside className="hidden w-56 shrink-0 flex-col border-r border-slate-200 bg-white p-4 md:flex">
-          <h1 className="mb-6 text-lg font-bold text-indigo-600">FocusBoard</h1>
+          <h1 className="mb-4 text-lg font-bold text-indigo-600">FocusBoard</h1>
+          <button
+            onClick={() => setPaletteOpen(true)}
+            className="mb-4 flex w-full items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-400 transition-colors hover:border-indigo-300 hover:text-slate-600"
+          >
+            <Search size={15} />
+            Cari...
+            <kbd className="ml-auto rounded border border-slate-200 px-1.5 text-[10px]">{MOD_KEY} K</kbd>
+          </button>
           <nav className="space-y-1">
             {menus.map(({ id, label, icon: Icon }) => (
               <button
@@ -169,6 +233,14 @@ export default function App() {
                   {formatTime(pomo.secondsLeft)}
                 </span>
               )}
+              <motion.button
+                whileTap={{ scale: 0.85 }}
+                onClick={() => setPaletteOpen(true)}
+                aria-label="Cari"
+                className="rounded-lg p-2 text-slate-600 transition-colors hover:bg-slate-100"
+              >
+                <Search size={18} />
+              </motion.button>
               <motion.button
                 whileTap={{ scale: 0.85, rotate: 20 }}
                 onClick={toggleTheme}
