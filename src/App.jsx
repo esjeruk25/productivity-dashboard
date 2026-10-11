@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import confetti from 'canvas-confetti'
 import {
-  LayoutDashboard, CheckSquare, Timer, StickyNote, BarChart3, Sun, Moon, Trophy, Search,
+  LayoutDashboard, CheckSquare, Timer, StickyNote, BarChart3, Sun, Moon, Trophy, Search, Palette,
 } from 'lucide-react'
 import TaskPage from './components/TaskPage'
 import Dashboard from './components/Dashboard'
@@ -11,6 +11,9 @@ import NotesPage from './components/NotesPage'
 import StatsPage from './components/StatsPage'
 import LoadingScreen from './components/LoadingScreen'
 import ThemeToggle from './components/ThemeToggle'
+import AnimatedBackground from './components/AnimatedBackground'
+import BackgroundToggle from './components/BackgroundToggle'
+import { nextBg } from './utils/background'
 import CommandPalette from './components/CommandPalette'
 import ShortcutsHelp from './components/ShortcutsHelp'
 import { MOD_KEY } from './utils/platform'
@@ -34,6 +37,7 @@ export default function App() {
   const [toast, setToast] = useState(null)
   const [paletteOpen, setPaletteOpen] = useState(false)
   const [helpOpen, setHelpOpen] = useState(false)
+  const [bgVariant, setBgVariant] = useLocalStorage('focusboard-bg', 'aurora')
   const pomo = usePomodoro(tasks)
   const [loading, setLoading] = useState(() => {
     try {
@@ -92,6 +96,12 @@ export default function App() {
     setTimeout(() => document.getElementById('task-input')?.focus(), 400)
   }, [])
 
+  const cycleBackground = useCallback(() => setBgVariant(nextBg(bgVariant)), [bgVariant, setBgVariant])
+
+  useEffect(() => {
+    document.documentElement.classList.toggle('bg-fx', bgVariant !== 'off')
+  }, [bgVariant])
+
   // Pintasan keyboard global
   useEffect(() => {
     const onKey = (e) => {
@@ -113,13 +123,15 @@ export default function App() {
         focusNewTask()
       } else if (e.key.toLowerCase() === 'd') {
         toggleTheme()
+      } else if (e.key.toLowerCase() === 'b') {
+        cycleBackground()
       } else if (e.key === '?') {
         setHelpOpen(true)
       }
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [loading, paletteOpen, helpOpen, focusNewTask, toggleTheme])
+  }, [loading, paletteOpen, helpOpen, focusNewTask, toggleTheme, cycleBackground])
 
   const finishLoading = () => {
     try {
@@ -132,6 +144,8 @@ export default function App() {
 
   return (
     <>
+      <AnimatedBackground variant={bgVariant} />
+
       <AnimatePresence>
         {loading && <LoadingScreen key="loader" onFinish={finishLoading} />}
       </AnimatePresence>
@@ -169,6 +183,8 @@ export default function App() {
               tasks, setTasks, notes, setNotes, pomo, menus, theme, toggleTheme,
               goTo: setActive,
               newTask: focusNewTask,
+              bgVariant,
+              cycleBackground,
               openHelp: () => setHelpOpen(true),
             }}
           />
@@ -176,7 +192,7 @@ export default function App() {
         {helpOpen && <ShortcutsHelp key="help" onClose={() => setHelpOpen(false)} />}
       </AnimatePresence>
 
-      <div className="flex min-h-screen flex-col bg-slate-50 text-slate-800 md:flex-row">
+      <div className="flex min-h-screen flex-col text-slate-800 md:flex-row">
         {/* Sidebar (layar lebar) */}
         <aside className="hidden w-56 shrink-0 flex-col border-r border-slate-200 bg-white p-4 md:flex">
           <h1 className="mb-4 text-lg font-bold text-indigo-600">FocusBoard</h1>
@@ -219,7 +235,10 @@ export default function App() {
               </button>
             ))}
           </nav>
-          <ThemeToggle theme={theme} onToggle={toggleTheme} />
+          <div className="mt-auto space-y-1">
+            <BackgroundToggle variant={bgVariant} onCycle={cycleBackground} />
+            <ThemeToggle theme={theme} onToggle={toggleTheme} />
+          </div>
         </aside>
 
         <div className="flex min-w-0 flex-1 flex-col">
@@ -240,6 +259,14 @@ export default function App() {
                 className="rounded-lg p-2 text-slate-600 transition-colors hover:bg-slate-100"
               >
                 <Search size={18} />
+              </motion.button>
+              <motion.button
+                whileTap={{ scale: 0.85 }}
+                onClick={cycleBackground}
+                aria-label="Ganti latar"
+                className="rounded-lg p-2 text-slate-600 transition-colors hover:bg-slate-100"
+              >
+                <Palette size={18} />
               </motion.button>
               <motion.button
                 whileTap={{ scale: 0.85, rotate: 20 }}

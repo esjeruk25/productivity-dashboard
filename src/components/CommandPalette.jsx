@@ -1,10 +1,15 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'motion/react'
-import { Search, Plus, Play, Pause, Moon, Sun, Keyboard, CheckCircle2, Trash2, StickyNote } from 'lucide-react'
+import {
+  Search, Plus, Play, Pause, Moon, Sun, Keyboard, CheckCircle2, Trash2, StickyNote,
+  Palette, Download, Upload, RotateCcw,
+} from 'lucide-react'
+import { BG_LABELS } from '../utils/background'
+import { exportData, importData, resetData } from '../utils/backup'
 
 // Susun daftar perintah sesuai teks yang diketik
 function buildCommands(query, ctx) {
-  const { tasks, setTasks, notes, setNotes, pomo, menus, theme, toggleTheme, goTo, newTask, openHelp } = ctx
+  const { tasks, setTasks, notes, setNotes, pomo, menus, theme, toggleTheme, goTo, newTask, openHelp, bgVariant, cycleBackground } = ctx
   const text = query.trim()
   const words = text.toLowerCase().split(/\s+/).filter(Boolean)
   const matches = (s) => words.every((w) => s.toLowerCase().includes(w))
@@ -40,6 +45,15 @@ function buildCommands(query, ctx) {
       keywords: 'tema theme dark light gelap terang',
       run: toggleTheme,
     },
+    {
+      id: 'bg',
+      group: 'Aksi',
+      label: `Ganti latar (sekarang: ${BG_LABELS[bgVariant]})`,
+      icon: Palette,
+      hint: 'B',
+      keywords: 'latar background aurora grid polos',
+      run: cycleBackground,
+    },
     { id: 'help', group: 'Aksi', label: 'Tampilkan pintasan keyboard', icon: Keyboard, hint: '?', keywords: 'bantuan help shortcut', run: openHelp },
   ]
   if (tasks.some((t) => t.done)) {
@@ -52,6 +66,12 @@ function buildCommands(query, ctx) {
       run: () => setTasks(tasks.filter((t) => !t.done)),
     })
   }
+
+  base.push(
+    { id: 'export', group: 'Data', label: 'Ekspor data (JSON)', icon: Download, keywords: 'backup simpan unduh export', run: exportData },
+    { id: 'import', group: 'Data', label: 'Impor data dari file', icon: Upload, keywords: 'restore pulihkan impor import', run: importData },
+    { id: 'reset', group: 'Data', label: 'Reset semua data', icon: RotateCcw, keywords: 'hapus reset bersihkan', run: resetData },
+  )
 
   const items = base.filter((c) => !text || matches(`${c.label} ${c.keywords}`))
   if (!text) return items

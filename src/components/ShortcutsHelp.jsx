@@ -8,6 +8,7 @@ const rows = [
   { keys: ['1 – 5'], text: 'Pindah halaman' },
   { keys: ['N'], text: 'Tugas baru (langsung mengetik)' },
   { keys: ['D'], text: 'Ganti mode gelap / terang' },
+  { keys: ['B'], text: 'Ganti gaya latar (Aurora / Grid / Polos)' },
   { keys: ['Spasi'], text: 'Mulai / jeda timer (di halaman Pomodoro)' },
   { keys: ['?'], text: 'Tampilkan bantuan ini' },
   { keys: ['Esc'], text: 'Tutup dialog' },
