@@ -46,9 +46,9 @@ Dashboard produktivitas interaktif: kelola tugas, fokus dengan Pomodoro, catat i
 |---|---|
 | ![Statistik](docs/screenshots/stats.png) | ![Palette](docs/screenshots/palette.png) |
 
-| Mode gelap | Tampilan HP |
+| Mode terang | Tampilan HP |
 |---|---|
-| ![Mode gelap](docs/screenshots/dark.png) | ![HP](docs/screenshots/mobile.png) |
+| ![Mode terang](docs/screenshots/light.png) | ![HP](docs/screenshots/mobile.png) |
 
 ## Pintasan keyboard
 
